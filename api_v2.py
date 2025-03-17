@@ -76,7 +76,7 @@ GET:
 ```
 http://127.0.0.1:9880/set_gpt_weights?weights_path=GPT_SoVITS/pretrained_models/s1bert25hz-2kh-longer-epoch=68e-step=50232.ckpt
 ```
-RESP: 
+RESP:
 成功: 返回"success", http code 200
 失败: 返回包含错误信息的 json, http code 400
 
@@ -90,10 +90,10 @@ GET:
 http://127.0.0.1:9880/set_sovits_weights?weights_path=GPT_SoVITS/pretrained_models/s2G488k.pth
 ```
 
-RESP: 
+RESP:
 成功: 返回"success", http code 200
 失败: 返回包含错误信息的 json, http code 400
-    
+
 """
 import os
 import sys
@@ -262,7 +262,7 @@ def check_params(req:dict):
         return JSONResponse(status_code=400, content={"message": f"media_type: {media_type} is not supported"})
     elif media_type == "ogg" and  not streaming_mode:
         return JSONResponse(status_code=400, content={"message": "ogg format is not supported in non-streaming mode"})
-    
+
     if text_split_method not in cut_method_names:
         return JSONResponse(status_code=400, content={"message": f"text_split_method:{text_split_method} is not supported"})
 
@@ -271,9 +271,9 @@ def check_params(req:dict):
 async def tts_handle(req:dict):
     """
     Text to speech handler.
-    
+
     Args:
-        req (dict): 
+        req (dict):
             {
                 "text": "",                   # str.(required) text to be synthesized
                 "text_lang: "",               # str.(required) language of the text to be synthesized
@@ -294,12 +294,12 @@ async def tts_handle(req:dict):
                 "media_type": "wav",          # str. media type of the output audio, support "wav", "raw", "ogg", "aac".
                 "streaming_mode": False,      # bool. whether to return a streaming response.
                 "parallel_infer": True,       # bool.(optional) whether to use parallel inference.
-                "repetition_penalty": 1.35    # float.(optional) repetition penalty for T2S model.          
+                "repetition_penalty": 1.35    # float.(optional) repetition penalty for T2S model.
             }
     returns:
         StreamingResponse: audio stream response.
     """
-    
+
     streaming_mode = req.get("streaming_mode", False)
     return_fragment = req.get("return_fragment", False)
     media_type = req.get("media_type", "wav")
@@ -310,10 +310,10 @@ async def tts_handle(req:dict):
 
     if streaming_mode or return_fragment:
         req["return_fragment"] = True
-    
+
     try:
         tts_generator=tts_pipeline.run(req)
-        
+
         if streaming_mode:
             def streaming_generator(tts_generator:Generator, media_type:str):
                 if media_type == "wav":
@@ -323,14 +323,14 @@ async def tts_handle(req:dict):
                     yield pack_audio(BytesIO(), chunk, sr, media_type).getvalue()
             # _media_type = f"audio/{media_type}" if not (streaming_mode and media_type in ["wav", "raw"]) else f"audio/x-{media_type}"
             return StreamingResponse(streaming_generator(tts_generator, media_type, ), media_type=f"audio/{media_type}")
-    
+
         else:
             sr, audio_data = next(tts_generator)
             audio_data = pack_audio(BytesIO(), audio_data, sr, media_type).getvalue()
             return Response(audio_data, media_type=f"audio/{media_type}")
     except Exception as e:
         return JSONResponse(status_code=400, content={"message": f"tts failed", "Exception": str(e)})
-    
+
 
 
 
@@ -390,7 +390,7 @@ async def tts_get_endpoint(
         "repetition_penalty":float(repetition_penalty)
     }
     return await tts_handle(req)
-                
+
 
 @APP.post("/tts")
 async def tts_post_endpoint(request: TTS_Request):
@@ -413,13 +413,13 @@ async def set_refer_aduio(refer_audio_path: str = None):
 #         # 检查文件类型，确保是音频文件
 #         if not audio_file.content_type.startswith("audio/"):
 #             return JSONResponse(status_code=400, content={"message": "file type is not supported"})
-        
+
 #         os.makedirs("uploaded_audio", exist_ok=True)
 #         save_path = os.path.join("uploaded_audio", audio_file.filename)
 #         # 保存音频文件到服务器上的一个目录
 #         with open(save_path , "wb") as buffer:
 #             buffer.write(await audio_file.read())
-            
+
 #         tts_pipeline.set_ref_audio(save_path)
 #     except Exception as e:
 #         return JSONResponse(status_code=400, content={"message": f"set refer audio failed", "Exception": str(e)})
@@ -447,7 +447,12 @@ async def set_sovits_weights(weights_path: str = None):
         return JSONResponse(status_code=400, content={"message": f"change sovits weight failed", "Exception": str(e)})
     return JSONResponse(status_code=200, content={"message": "success"})
 
-
+@app.get("/ping")
+def ping():
+    return JSONResponse(
+        content={"status": "ok"},
+        media_type="application/json"
+    )
 
 if __name__ == "__main__":
     try:
