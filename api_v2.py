@@ -447,7 +447,7 @@ async def set_sovits_weights(weights_path: str = None):
         return JSONResponse(status_code=400, content={"message": f"change sovits weight failed", "Exception": str(e)})
     return JSONResponse(status_code=200, content={"message": "success"})
 
-@app.get("/ping")
+@APP.get("/ping")
 def ping():
     return JSONResponse(
         content={"status": "ok"},
