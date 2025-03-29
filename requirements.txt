@@ -12,7 +12,7 @@ tqdm
 funasr==1.0.27
 cn2an
 pypinyin
-pyopenjtalk>=0.3.4
+#pyopenjtalk>=0.3.4
 g2p_en
 torchaudio
 modelscope==1.10.0
@@ -29,7 +29,7 @@ fast_langdetect>=0.3.0
 Faster_Whisper
 wordsegment
 rotary_embedding_torch
-ToJyutping 
+ToJyutping
 g2pk2
 ko_pron
 opencc; sys_platform != 'linux'
